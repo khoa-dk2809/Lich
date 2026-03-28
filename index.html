@@ -81,7 +81,44 @@
                 color: #ff3b30;
             }
 
-            /* Phần UI của Lịch (giữ nguyên độ đẹp) */
+            /* CSS Nút Xuất/Nhập dữ liệu */
+            .action-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                margin-top: 30px;
+                width: 100%;
+            }
+            .btn {
+                width: 100%;
+                padding: 14px;
+                border: none;
+                border-radius: 12px;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 8px;
+            }
+            .btn.export {
+                background-color: #e8f5e9;
+                color: #2e7d32;
+            }
+            .btn.export:hover {
+                background-color: #c8e6c9;
+            }
+            .btn.import {
+                background-color: #e3f2fd;
+                color: #1565c0;
+            }
+            .btn.import:hover {
+                background-color: #bbdefb;
+            }
+
+            /* Phần UI của Lịch */
             .header {
                 display: flex;
                 justify-content: space-between;
@@ -300,6 +337,21 @@
                     <div class="stat-number" id="monthlyCount">0</div>
                     <div class="stat-label">buổi tập</div>
                 </div>
+
+                <div class="action-buttons">
+                    <button id="exportBtn" class="btn export">
+                        📥 Tải file sao lưu
+                    </button>
+                    <button id="importBtn" class="btn import">
+                        📤 Phục hồi dữ liệu
+                    </button>
+                    <input
+                        type="file"
+                        id="importFile"
+                        accept=".json"
+                        style="display: none"
+                    />
+                </div>
             </div>
         </div>
 
@@ -315,6 +367,11 @@
             const prevBtn = document.getElementById("prevBtn");
             const nextBtn = document.getElementById("nextBtn");
             const monthlyCountDisplay = document.getElementById("monthlyCount");
+
+            // Các biến cho tính năng Xuất/Nhập
+            const exportBtn = document.getElementById("exportBtn");
+            const importBtn = document.getElementById("importBtn");
+            const importFile = document.getElementById("importFile");
 
             let currentDate = new Date();
             let gymDays =
@@ -334,6 +391,7 @@
                 "T11",
                 "T12",
             ];
+
             for (let i = 0; i < 12; i++) {
                 const monthDiv = document.createElement("div");
                 monthDiv.textContent = vnMonthNames[i];
@@ -394,24 +452,23 @@
 
                     if (gymDays[dateString]) {
                         dayDiv.classList.add("active");
-                        currentMonthWorkoutCount++; // Tăng biến đếm nếu ngày đó có tập
+                        currentMonthWorkoutCount++;
                     }
 
                     dayDiv.addEventListener("click", () => {
                         if (gymDays[dateString]) {
                             delete gymDays[dateString];
                             dayDiv.classList.remove("active");
-                            currentMonthWorkoutCount--; // Giảm đi 1
+                            currentMonthWorkoutCount--;
                         } else {
                             gymDays[dateString] = true;
                             dayDiv.classList.add("active");
-                            currentMonthWorkoutCount++; // Tăng lên 1
+                            currentMonthWorkoutCount++;
                         }
                         localStorage.setItem(
                             "gymTrackData",
                             JSON.stringify(gymDays),
                         );
-                        // Cập nhật số liệu hiển thị ngay lập tức
                         monthlyCountDisplay.textContent =
                             currentMonthWorkoutCount;
                     });
@@ -420,7 +477,6 @@
                     daysContainer.appendChild(wrapper);
                 }
 
-                // Hiển thị tổng số buổi tập ra màn hình
                 monthlyCountDisplay.textContent = currentMonthWorkoutCount;
             }
 
@@ -462,6 +518,67 @@
                 e.stopPropagation();
                 currentDate.setMonth(currentDate.getMonth() + 1);
                 renderCalendar();
+            });
+
+            // ================= LOGIC XUẤT / NHẬP DỮ LIỆU =================
+
+            // Xử lý sự kiện bấm nút Tải file sao lưu (Export)
+            exportBtn.addEventListener("click", () => {
+                if (Object.keys(gymDays).length === 0) {
+                    alert("Chưa có dữ liệu lịch tập nào để xuất!");
+                    return;
+                }
+                const dataStr = JSON.stringify(gymDays);
+                const dataUri =
+                    "data:application/json;charset=utf-8," +
+                    encodeURIComponent(dataStr);
+                const exportFileDefaultName = "lich-tap-gym.json";
+
+                const linkElement = document.createElement("a");
+                linkElement.setAttribute("href", dataUri);
+                linkElement.setAttribute("download", exportFileDefaultName);
+                linkElement.click();
+            });
+
+            // Xử lý sự kiện bấm nút Phục hồi dữ liệu (Import)
+            importBtn.addEventListener("click", () => {
+                importFile.click(); // Mở hộp thoại chọn file
+            });
+
+            importFile.addEventListener("change", (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+
+                        // Kiểm tra cơ bản xem file json có đúng định dạng không
+                        if (
+                            typeof importedData === "object" &&
+                            importedData !== null
+                        ) {
+                            gymDays = importedData;
+                            localStorage.setItem(
+                                "gymTrackData",
+                                JSON.stringify(gymDays),
+                            );
+                            renderCalendar(); // Vẽ lại lịch với dữ liệu mới
+                            alert("Đã phục hồi dữ liệu thành công!");
+                        } else {
+                            throw new Error("Invalid format");
+                        }
+                    } catch (error) {
+                        alert(
+                            "File không hợp lệ hoặc bị lỗi! Vui lòng chọn đúng file lịch tập (.json).",
+                        );
+                    }
+                };
+                reader.readAsText(file);
+
+                // Reset lại giá trị của input file để có thể chọn lại chính file đó nếu cần
+                importFile.value = "";
             });
 
             renderCalendar();
