@@ -3,8 +3,16 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Lịch Tập Gym & Thống Kê</title>
+        <title>Lịch Theo Dõi Cá Nhân</title>
         <style>
+            :root {
+                /* Mặc định là màu của Gym */
+                --theme-color: #ff3b30;
+                --theme-color-rgb: 255, 59, 48;
+                --theme-light: #ffe5e5;
+                --theme-bg: #fff0f0;
+            }
+
             body {
                 font-family:
                     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -19,17 +27,59 @@
                 box-sizing: border-box;
             }
 
+            .app-container {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+                width: 100%;
+                max-width: 900px;
+            }
+
+            /* Thanh điều hướng (Tabs) */
+            .top-nav {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+
+            .nav-btn {
+                padding: 12px 24px;
+                border: none;
+                border-radius: 12px;
+                background: #fff;
+                color: #555;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                transition: all 0.2s ease-in-out;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .nav-btn:hover {
+                transform: translateY(-2px);
+            }
+
+            .nav-btn.active {
+                background: var(--theme-color);
+                color: white;
+                box-shadow: 0 4px 12px rgba(var(--theme-color-rgb), 0.4);
+            }
+
             /* Container chính chứa cả 2 cột */
             .main-wrapper {
                 display: flex;
                 gap: 30px;
                 width: 100%;
-                max-width: 900px;
                 background: #fff;
                 border-radius: 20px;
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
                 padding: 30px;
                 box-sizing: border-box;
+                transition: all 0.3s;
             }
 
             /* Cột trái: Lịch */
@@ -56,29 +106,31 @@
                 margin-bottom: 20px;
             }
             .stat-box {
-                background: #fff0f0;
-                border: 2px solid #ffe5e5;
+                background: var(--theme-bg);
+                border: 2px solid var(--theme-light);
                 border-radius: 20px;
                 padding: 30px;
                 width: 100%;
                 box-sizing: border-box;
-                transition: transform 0.2s;
+                transition: all 0.3s;
             }
             .stat-box:hover {
                 transform: translateY(-5px);
-                box-shadow: 0 10px 20px rgba(255, 59, 48, 0.1);
+                box-shadow: 0 10px 20px rgba(var(--theme-color-rgb), 0.1);
             }
             .stat-number {
                 font-size: 64px;
                 font-weight: bold;
-                color: #ff3b30;
+                color: var(--theme-color);
                 line-height: 1;
                 margin-bottom: 10px;
+                transition: color 0.3s;
             }
             .stat-label {
                 font-size: 18px;
                 font-weight: 500;
-                color: #ff3b30;
+                color: var(--theme-color);
+                transition: color 0.3s;
             }
 
             /* CSS Nút Xuất/Nhập dữ liệu */
@@ -129,14 +181,14 @@
                 background: none;
                 border: none;
                 font-size: 24px;
-                color: #ff3b30;
+                color: var(--theme-color);
                 cursor: pointer;
                 padding: 8px 16px;
                 border-radius: 8px;
                 transition: 0.2s;
             }
             .header button:hover {
-                background-color: #ffe5e5;
+                background-color: var(--theme-light);
             }
 
             .date-picker-trigger {
@@ -144,7 +196,7 @@
                 align-items: center;
                 gap: 8px;
                 font-size: 22px;
-                color: #ff3b30;
+                color: var(--theme-color);
                 font-weight: 600;
                 cursor: pointer;
                 padding: 8px 16px;
@@ -152,7 +204,7 @@
                 transition: background 0.2s;
             }
             .date-picker-trigger:hover {
-                background-color: #ffe5e5;
+                background-color: var(--theme-light);
             }
             .dropdown-icon {
                 font-size: 12px;
@@ -207,7 +259,7 @@
                 background-color: #f0f0f0;
             }
             .month-grid div.selected {
-                background-color: #ff3b30;
+                background-color: var(--theme-color);
                 color: white;
             }
 
@@ -218,10 +270,11 @@
                 border: 2px solid #eee;
                 border-radius: 8px;
                 outline: none;
-                color: #ff3b30;
+                color: var(--theme-color);
                 cursor: pointer;
                 font-weight: bold;
                 text-align: center;
+                transition: color 0.3s;
             }
 
             .weekdays {
@@ -264,9 +317,9 @@
                 visibility: hidden;
             }
             .day.active {
-                background-color: #ff3b30;
+                background-color: var(--theme-color);
                 color: white;
-                box-shadow: 0 4px 12px rgba(255, 59, 48, 0.4);
+                box-shadow: 0 4px 12px rgba(var(--theme-color-rgb), 0.4);
             }
 
             /* Responsive cho điện thoại */
@@ -297,65 +350,133 @@
         </style>
     </head>
     <body>
-        <div class="main-wrapper">
-            <div class="calendar-section">
-                <div class="header">
-                    <button id="prevBtn">&lt;</button>
-                    <div class="date-picker-trigger" id="datePickerTrigger">
-                        <span id="monthYearDisplay">Tháng ..., Năm ....</span>
-                        <div class="dropdown-icon">&#9662;</div>
-                    </div>
-                    <button id="nextBtn">&gt;</button>
-                </div>
-
-                <div class="date-picker-panel" id="datePickerPanel">
-                    <div class="panel-sections">
-                        <div class="month-section">
-                            <div class="month-grid" id="monthGrid"></div>
-                        </div>
-                        <div class="year-section">
-                            <select id="yearSelectPanel"></select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="weekdays">
-                    <div>T2</div>
-                    <div>T3</div>
-                    <div>T4</div>
-                    <div>T5</div>
-                    <div>T6</div>
-                    <div>T7</div>
-                    <div>CN</div>
-                </div>
-                <div class="days" id="days"></div>
+        <div class="app-container">
+            <div class="top-nav">
+                <button
+                    class="nav-btn active"
+                    data-target="gym"
+                    data-color="#ff3b30"
+                    data-rgb="255, 59, 48"
+                    data-light="#ffe5e5"
+                    data-bg="#fff0f0"
+                >
+                    🏋️ Tập Gym
+                </button>
+                <button
+                    class="nav-btn"
+                    data-target="reading"
+                    data-color="#007aff"
+                    data-rgb="0, 122, 255"
+                    data-light="#e5f1ff"
+                    data-bg="#f0f8ff"
+                >
+                    📚 Đọc Sách
+                </button>
+                <button
+                    class="nav-btn"
+                    data-target="english"
+                    data-color="#34c759"
+                    data-rgb="52, 199, 89"
+                    data-light="#e8f5e9"
+                    data-bg="#f1f8e9"
+                >
+                    🇬🇧 Tiếng Anh
+                </button>
             </div>
 
-            <div class="stats-section">
-                <div class="stats-title">Thống kê tháng này</div>
-                <div class="stat-box">
-                    <div class="stat-number" id="monthlyCount">0</div>
-                    <div class="stat-label">buổi tập</div>
+            <div class="main-wrapper">
+                <div class="calendar-section">
+                    <div class="header">
+                        <button id="prevBtn">&lt;</button>
+                        <div class="date-picker-trigger" id="datePickerTrigger">
+                            <span id="monthYearDisplay"
+                                >Tháng ..., Năm ....</span
+                            >
+                            <div class="dropdown-icon">&#9662;</div>
+                        </div>
+                        <button id="nextBtn">&gt;</button>
+                    </div>
+
+                    <div class="date-picker-panel" id="datePickerPanel">
+                        <div class="panel-sections">
+                            <div class="month-section">
+                                <div class="month-grid" id="monthGrid"></div>
+                            </div>
+                            <div class="year-section">
+                                <select id="yearSelectPanel"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="weekdays">
+                        <div>T2</div>
+                        <div>T3</div>
+                        <div>T4</div>
+                        <div>T5</div>
+                        <div>T6</div>
+                        <div>T7</div>
+                        <div>CN</div>
+                    </div>
+                    <div class="days" id="days"></div>
                 </div>
 
-                <div class="action-buttons">
-                    <button id="exportBtn" class="btn export">
-                        📥 Tải file sao lưu
-                    </button>
-                    <button id="importBtn" class="btn import">
-                        📤 Phục hồi dữ liệu
-                    </button>
-                    <input
-                        type="file"
-                        id="importFile"
-                        accept=".json"
-                        style="display: none"
-                    />
+                <div class="stats-section">
+                    <div class="stats-title" id="statsTitle">
+                        Thống kê tháng này
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="monthlyCount">0</div>
+                        <div class="stat-label" id="statLabel">buổi tập</div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="exportBtn" class="btn export">
+                            📥 Sao lưu tất cả dữ liệu
+                        </button>
+                        <button id="importBtn" class="btn import">
+                            📤 Phục hồi tất cả dữ liệu
+                        </button>
+                        <input
+                            type="file"
+                            id="importFile"
+                            accept=".json"
+                            style="display: none"
+                        />
+                    </div>
                 </div>
             </div>
         </div>
 
         <script>
+            // Các nút điều hướng
+            const navButtons = document.querySelectorAll(".nav-btn");
+
+            // Cấu hình cho từng loại lịch
+            const categories = {
+                gym: {
+                    id: "gym",
+                    name: "Lịch Tập Gym",
+                    unit: "buổi tập",
+                    storageKey: "gymTrackData",
+                },
+                reading: {
+                    id: "reading",
+                    name: "Lịch Đọc Sách",
+                    unit: "ngày đọc",
+                    storageKey: "readingTrackData",
+                },
+                english: {
+                    id: "english",
+                    name: "Lịch Học Tiếng Anh",
+                    unit: "ngày học",
+                    storageKey: "englishTrackData",
+                },
+            };
+
+            let currentCategory = "gym";
+            let trackData = {};
+            let currentDate = new Date();
+
             const monthYearDisplay =
                 document.getElementById("monthYearDisplay");
             const datePickerTrigger =
@@ -367,15 +488,42 @@
             const prevBtn = document.getElementById("prevBtn");
             const nextBtn = document.getElementById("nextBtn");
             const monthlyCountDisplay = document.getElementById("monthlyCount");
+            const statLabel = document.getElementById("statLabel");
 
-            // Các biến cho tính năng Xuất/Nhập
             const exportBtn = document.getElementById("exportBtn");
             const importBtn = document.getElementById("importBtn");
             const importFile = document.getElementById("importFile");
 
-            let currentDate = new Date();
-            let gymDays =
-                JSON.parse(localStorage.getItem("gymTrackData")) || {};
+            // Xử lý chuyển đổi Tab
+            navButtons.forEach((btn) => {
+                btn.addEventListener("click", (e) => {
+                    navButtons.forEach((b) => b.classList.remove("active"));
+                    btn.classList.add("active");
+
+                    const root = document.documentElement;
+                    root.style.setProperty("--theme-color", btn.dataset.color);
+                    root.style.setProperty(
+                        "--theme-color-rgb",
+                        btn.dataset.rgb,
+                    );
+                    root.style.setProperty("--theme-light", btn.dataset.light);
+                    root.style.setProperty("--theme-bg", btn.dataset.bg);
+
+                    currentCategory = btn.dataset.target;
+                    loadData(currentCategory);
+                });
+            });
+
+            function loadData(categoryId) {
+                const config = categories[categoryId];
+                trackData =
+                    JSON.parse(localStorage.getItem(config.storageKey)) || {};
+
+                statLabel.textContent = config.unit;
+                document.title = config.name + " & Thống Kê";
+
+                renderCalendar();
+            }
 
             const vnMonthNames = [
                 "T1",
@@ -432,7 +580,7 @@
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
                 const startDay = firstDay === 0 ? 6 : firstDay - 1;
 
-                let currentMonthWorkoutCount = 0;
+                let currentMonthCount = 0;
 
                 for (let i = 0; i < startDay; i++) {
                     const emptyWrapper = document.createElement("div");
@@ -450,34 +598,33 @@
 
                     const dateString = `${year}-${month + 1}-${i}`;
 
-                    if (gymDays[dateString]) {
+                    if (trackData[dateString]) {
                         dayDiv.classList.add("active");
-                        currentMonthWorkoutCount++;
+                        currentMonthCount++;
                     }
 
                     dayDiv.addEventListener("click", () => {
-                        if (gymDays[dateString]) {
-                            delete gymDays[dateString];
+                        if (trackData[dateString]) {
+                            delete trackData[dateString];
                             dayDiv.classList.remove("active");
-                            currentMonthWorkoutCount--;
+                            currentMonthCount--;
                         } else {
-                            gymDays[dateString] = true;
+                            trackData[dateString] = true;
                             dayDiv.classList.add("active");
-                            currentMonthWorkoutCount++;
+                            currentMonthCount++;
                         }
                         localStorage.setItem(
-                            "gymTrackData",
-                            JSON.stringify(gymDays),
+                            categories[currentCategory].storageKey,
+                            JSON.stringify(trackData),
                         );
-                        monthlyCountDisplay.textContent =
-                            currentMonthWorkoutCount;
+                        monthlyCountDisplay.textContent = currentMonthCount;
                     });
 
                     wrapper.appendChild(dayDiv);
                     daysContainer.appendChild(wrapper);
                 }
 
-                monthlyCountDisplay.textContent = currentMonthWorkoutCount;
+                monthlyCountDisplay.textContent = currentMonthCount;
             }
 
             function toggleDatePicker() {
@@ -520,19 +667,36 @@
                 renderCalendar();
             });
 
-            // ================= LOGIC XUẤT / NHẬP DỮ LIỆU =================
+            // ================= LOGIC XUẤT / NHẬP GỘP DỮ LIỆU =================
 
-            // Xử lý sự kiện bấm nút Tải file sao lưu (Export)
             exportBtn.addEventListener("click", () => {
-                if (Object.keys(gymDays).length === 0) {
-                    alert("Chưa có dữ liệu lịch tập nào để xuất!");
+                // Gom tất cả dữ liệu từ localStorage
+                const allData = {
+                    gymTrackData:
+                        JSON.parse(localStorage.getItem("gymTrackData")) || {},
+                    readingTrackData:
+                        JSON.parse(localStorage.getItem("readingTrackData")) ||
+                        {},
+                    englishTrackData:
+                        JSON.parse(localStorage.getItem("englishTrackData")) ||
+                        {},
+                };
+
+                // Kiểm tra xem có bất kỳ dữ liệu nào để xuất không
+                const hasAnyData = Object.values(allData).some(
+                    (data) => Object.keys(data).length > 0,
+                );
+
+                if (!hasAnyData) {
+                    alert("Chưa có dữ liệu ở bất kỳ lịch nào để sao lưu!");
                     return;
                 }
-                const dataStr = JSON.stringify(gymDays);
+
+                const dataStr = JSON.stringify(allData);
                 const dataUri =
                     "data:application/json;charset=utf-8," +
                     encodeURIComponent(dataStr);
-                const exportFileDefaultName = "lich-tap-gym.json";
+                const exportFileDefaultName = "tat-ca-lich-theo-doi.json";
 
                 const linkElement = document.createElement("a");
                 linkElement.setAttribute("href", dataUri);
@@ -540,9 +704,8 @@
                 linkElement.click();
             });
 
-            // Xử lý sự kiện bấm nút Phục hồi dữ liệu (Import)
             importBtn.addEventListener("click", () => {
-                importFile.click(); // Mở hộp thoại chọn file
+                importFile.click();
             });
 
             importFile.addEventListener("change", (event) => {
@@ -554,34 +717,63 @@
                     try {
                         const importedData = JSON.parse(e.target.result);
 
-                        // Kiểm tra cơ bản xem file json có đúng định dạng không
                         if (
                             typeof importedData === "object" &&
                             importedData !== null
                         ) {
-                            gymDays = importedData;
-                            localStorage.setItem(
-                                "gymTrackData",
-                                JSON.stringify(gymDays),
-                            );
-                            renderCalendar(); // Vẽ lại lịch với dữ liệu mới
-                            alert("Đã phục hồi dữ liệu thành công!");
+                            // Hỗ trợ đọc file backup cũ (chỉ có dữ liệu Gym ngày xưa)
+                            if (
+                                !importedData.gymTrackData &&
+                                !importedData.readingTrackData &&
+                                !importedData.englishTrackData
+                            ) {
+                                localStorage.setItem(
+                                    "gymTrackData",
+                                    JSON.stringify(importedData),
+                                );
+                            } else {
+                                // Đọc file backup tổng hợp mới
+                                if (importedData.gymTrackData)
+                                    localStorage.setItem(
+                                        "gymTrackData",
+                                        JSON.stringify(
+                                            importedData.gymTrackData,
+                                        ),
+                                    );
+                                if (importedData.readingTrackData)
+                                    localStorage.setItem(
+                                        "readingTrackData",
+                                        JSON.stringify(
+                                            importedData.readingTrackData,
+                                        ),
+                                    );
+                                if (importedData.englishTrackData)
+                                    localStorage.setItem(
+                                        "englishTrackData",
+                                        JSON.stringify(
+                                            importedData.englishTrackData,
+                                        ),
+                                    );
+                            }
+
+                            // Load lại giao diện hiện tại sau khi nạp dữ liệu
+                            loadData(currentCategory);
+                            alert("Đã phục hồi toàn bộ dữ liệu thành công!");
                         } else {
                             throw new Error("Invalid format");
                         }
                     } catch (error) {
                         alert(
-                            "File không hợp lệ hoặc bị lỗi! Vui lòng chọn đúng file lịch tập (.json).",
+                            "File không hợp lệ hoặc bị lỗi! Vui lòng chọn đúng file (.json).",
                         );
                     }
                 };
                 reader.readAsText(file);
-
-                // Reset lại giá trị của input file để có thể chọn lại chính file đó nếu cần
                 importFile.value = "";
             });
 
-            renderCalendar();
+            // Khởi chạy dữ liệu mặc định
+            loadData(currentCategory);
         </script>
     </body>
 </html>
